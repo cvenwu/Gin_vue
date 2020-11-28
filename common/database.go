@@ -3,8 +3,8 @@ package common
 import (
 	"fmt"
 	"gin_vue/model"
-	"github.com/jinzhu/gorm"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/jinzhu/gorm"
 )
 
 /**
@@ -33,11 +33,9 @@ func InitDB() {
 		panic(err)
 	}
 
-
 	//让gorm自动创建数据表
 	DB.AutoMigrate(&model.User{})
 }
-
 
 func GetDB() *gorm.DB {
 	return DB

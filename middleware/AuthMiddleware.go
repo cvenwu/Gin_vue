@@ -3,8 +3,8 @@ package middleware
 import (
 	"gin_vue/common"
 	"gin_vue/model"
+	"gin_vue/response"
 	"github.com/gin-gonic/gin"
-	"net/http"
 	"strings"
 )
 
@@ -23,10 +23,8 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		//验证格式
 		if tokenString == "" || !strings.HasPrefix(tokenString, "Bearer ") {
-			ctx.JSON(http.StatusOK, gin.H{
-				"code": 2007,
-				"msg":  "权限不足",
-			})
+
+			response.Fail(ctx, nil, "权限不足")
 			//将这次请求抛弃掉
 			ctx.Abort()
 			return
@@ -38,10 +36,8 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		//如果解析失败或者解析后的token无效，我们就返回权限不足
 		if err != nil || !token.Valid {
-			ctx.JSON(http.StatusOK, gin.H{
-				"code": 2007,
-				"msg":  "权限不足",
-			})
+			response.Fail(ctx, nil, "权限不足")
+
 			//将这次请求抛弃掉
 			ctx.Abort()
 			return
@@ -56,10 +52,8 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		//用户不存在
 		if user.ID == 0 {
-			ctx.JSON(http.StatusOK, gin.H{
-				"code": 2007,
-				"msg":  "权限不足",
-			})
+			response.Fail(ctx, nil, "权限不足")
+
 			//将这次请求抛弃掉
 			ctx.Abort()
 			return

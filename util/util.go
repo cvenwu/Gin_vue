@@ -11,7 +11,6 @@ import (
  * @Desc:
  **/
 
-
 //生成一个n位的随机字符串
 func RandString(n int) string {
 	letters := []byte("qwekqholfsdlgnruikhiurjojpgperwgklfdnkjgbdfnjkgdfgd")

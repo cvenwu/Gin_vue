@@ -2,7 +2,9 @@ package controller
 
 import (
 	"gin_vue/common"
+	"gin_vue/dto"
 	"gin_vue/model"
+	"gin_vue/response"
 	"gin_vue/util"
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
@@ -27,18 +29,12 @@ func Register(ctx *gin.Context) {
 	//2. 实现数据认证
 
 	if len(telephone) == 0 {
-		ctx.JSON(http.StatusOK, gin.H{
-			"code": 2000,
-			"msg":  "手机号不可以为空",
-		})
+		response.Fail(ctx, nil, "手机号不可以为空")
 		return
 	}
 
 	if len(password) < 6 {
-		ctx.JSON(http.StatusOK, gin.H{
-			"code": 2001,
-			"msg":  "密码不可以少于6位",
-		})
+		response.Fail(ctx, nil, "密码不可以少于6位")
 		return
 	}
 
@@ -50,10 +46,7 @@ func Register(ctx *gin.Context) {
 	//3. 查询用户是否存在-->判断手机号是否存在
 	db := common.GetDB()
 	if isTelephoneExists(db, telephone) {
-		ctx.JSON(http.StatusOK, gin.H{
-			"code": 2002,
-			"msg":  "手机号已经存在！！！",
-		})
+		response.Fail(ctx, nil, "手机号已经存在")
 		return
 	}
 
@@ -63,10 +56,7 @@ func Register(ctx *gin.Context) {
 	//TODO:对密码进行加密
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"code": 2003,
-			"msg":  "加密错误",
-		})
+		response.Fail(ctx, nil, "加密错误")
 		return
 	}
 
@@ -81,11 +71,7 @@ func Register(ctx *gin.Context) {
 	log.Println(username, password, telephone)
 
 	//4. 返回信息
-
-	ctx.JSON(http.StatusOK, gin.H{
-		"code": 1000,
-		"msg":  "注册成功！！！",
-	})
+	response.Success(ctx, nil, "注册成功")
 }
 
 func isTelephoneExists(db *gorm.DB, telephone string) bool {
@@ -110,18 +96,13 @@ func Login(ctx *gin.Context) {
 
 	//实现验证
 	if len(telephone) == 0 {
-		ctx.JSON(http.StatusOK, gin.H{
-			"code": 2000,
-			"msg":  "手机号不可以为空",
-		})
+		response.Fail(ctx, nil, "手机号不可以为空")
+
 		return
 	}
 
 	if len(password) < 6 {
-		ctx.JSON(http.StatusOK, gin.H{
-			"code": 2001,
-			"msg":  "密码不可以少于6位",
-		})
+		response.Fail(ctx, nil, "密码不可以少于6位")
 		return
 	}
 
@@ -132,42 +113,28 @@ func Login(ctx *gin.Context) {
 	var user model.User
 	db.Where("telephone = ?", telephone).First(&user)
 	if user.ID == 0 {
-		ctx.JSON(http.StatusOK, gin.H{
-			"code": 2004,
-			"msg":  "手机号不存在，请稍后再试",
-		})
+		response.Fail(ctx, nil, "手机号不存在")
 		return
 	}
 
 	//如果存在就继续判断密码是否正确
 	//如果密码验证成功err就是nil，否则就会返回一个错误
 	if bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)) != nil {
-		ctx.JSON(http.StatusOK, gin.H{
-			"code": 2005,
-			"msg":  "密码不正确！！！",
-		})
+		response.Fail(ctx, nil, "密码不正确")
 		return
 	}
 
 	token, err := common.ReleaseToken(user)
 	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{
-			"code": 2006,
-			"msg": "生成token失败",
-		})
+		response.Fail(ctx, nil, "生成Token失败")
 		return
 	}
 
 	//如果正确就返回token
-	ctx.JSON(http.StatusOK, gin.H{
-		"code": 1000,
-		"msg":  "登录成功！！！",
-		"data": gin.H{
-			"token": token,
-		},
-	})
+	response.Success(ctx, gin.H{
+		"token": token,
+	}, "登录成功")
 }
-
 
 //获取用户信息的时候用户一定是经过了认证的，并且我们可以从上下文中获取到用户的信息
 func Info(ctx *gin.Context) {
@@ -175,7 +142,7 @@ func Info(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": 1000,
 		"data": gin.H{
-			"user": user,
+			"user": dto.ToUserDto(user.(model.User)),
 		},
 	})
 }
