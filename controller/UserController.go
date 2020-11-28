@@ -17,7 +17,6 @@ import (
  * @Desc:
  **/
 
-
 //实现用户的注册
 func Register(ctx *gin.Context) {
 	//1. 获取参数
@@ -66,11 +65,10 @@ func Register(ctx *gin.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"code": 2003,
-			"msg": "加密错误",
+			"msg":  "加密错误",
 		})
 		return
 	}
-
 
 	newUser := model.User{
 		Username:  username,
@@ -110,7 +108,6 @@ func Login(ctx *gin.Context) {
 	password := ctx.PostForm("password")
 	telephone := ctx.PostForm("telephone")
 
-
 	//实现验证
 	if len(telephone) == 0 {
 		ctx.JSON(http.StatusOK, gin.H{
@@ -137,7 +134,7 @@ func Login(ctx *gin.Context) {
 	if user.ID == 0 {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": 2004,
-			"msg": "手机号不存在，请稍后再试",
+			"msg":  "手机号不存在，请稍后再试",
 		})
 		return
 	}
@@ -147,17 +144,42 @@ func Login(ctx *gin.Context) {
 	if bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)) != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": 2005,
-			"msg": "密码不正确！！！",
+			"msg":  "密码不正确！！！",
 		})
 		return
 	}
 
+
+
+	token, err := common.ReleaseToken(user)
+	if err != nil {
+		ctx.JSON(http.StatusOK, gin.H{
+			"code": 2006,
+			"msg": "生成token失败",
+		})
+		return
+	}
+
+
 	//如果正确就返回token
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": 1000,
-		"msg": "登录成功！！！",
+		"msg":  "登录成功！！！",
 		"data": gin.H{
-			"token": 11,
+			"token": token,
 		},
 	})
+}
+
+
+//获取用户信息的时候用户一定是经过了认证的，并且我们可以从上下文中获取到用户的信息
+func Info(ctx *gin.Context) {
+	user, _ := ctx.Get("user")
+	ctx.JSON(http.StatusOK, gin.H{
+		"code": 1000,
+		"data": gin.H{
+			"user": user,
+		},
+	})
+
 }
