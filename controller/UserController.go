@@ -149,8 +149,6 @@ func Login(ctx *gin.Context) {
 		return
 	}
 
-
-
 	token, err := common.ReleaseToken(user)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
@@ -159,7 +157,6 @@ func Login(ctx *gin.Context) {
 		})
 		return
 	}
-
 
 	//如果正确就返回token
 	ctx.JSON(http.StatusOK, gin.H{
@@ -181,5 +178,4 @@ func Info(ctx *gin.Context) {
 			"user": user,
 		},
 	})
-
 }
