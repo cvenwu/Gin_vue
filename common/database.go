@@ -5,6 +5,7 @@ import (
 	"gin_vue/model"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
+	"github.com/spf13/viper"
 )
 
 /**
@@ -17,15 +18,16 @@ var DB *gorm.DB
 
 func InitDB() {
 
-	driverName := "mysql"
-	user := "root"
-	password := "1018222wxw"
-	database := "gin_test"
-	host := "localhost"
-	port := "3306"
+	driverName := viper.GetString("datasource.driverName")
+	user := viper.GetString("datasource.username")
+	password := viper.GetString("datasource.password")
+	database := viper.GetString("datasource.database")
+	host := viper.GetString("datasource.host")
+	port := viper.GetString("datasource.port")
+	charset := viper.GetString("datasource.charset")
 
 	//最终需要的格式：root:123456@tcp(localhost:3306)/数据库名字?charset=utf8&parseTime=True&loc=Local
-	mysqlDSN := fmt.Sprintf("%s:%s@(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local", user, password, host, port, database)
+	mysqlDSN := fmt.Sprintf("%s:%s@(%s:%s)/%s?charset=%s&parseTime=True&loc=Local", user, password, host, port, database, charset)
 
 	var err error
 	DB, err = gorm.Open(driverName, mysqlDSN)
